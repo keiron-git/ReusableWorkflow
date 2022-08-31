@@ -49,7 +49,7 @@ jobs:
       run: |
         kubectl run --overrides='
           {
-            "apiVersion": "batch/v1",
+            "apiVersion": "apps/v1",
             "spec": {
               "template": {
                 "spec": {
