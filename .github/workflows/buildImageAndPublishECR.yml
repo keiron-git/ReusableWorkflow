@@ -1,0 +1,55 @@
+name: Build with Kaniko and change image
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: true
+        type: string
+      app_name:
+        required: true
+        type: string
+      image_repository_name:
+        required: true
+        type: string
+      cluster_name:
+        required: true
+        type: string
+      timeout:
+        type: string
+        default: "5m"
+      runner:
+        type: string
+        default: "runner-development" 
+      environment:
+        type: string
+        default: "dev"
+      kaniko_verbosity:
+        type: string
+        default: "info"
+    secrets:
+      aws_account_id:
+        required: true
+      personal_token:
+        required: true
+jobs:
+  deployment-kaniko:
+    runs-on: ${{inputs.runner}}
+    environment: ${{inputs.environment}}
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+
+    - name: set job env
+      run: |
+        echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
+        aws eks update-kubeconfig --name ${{inputs.cluster_name}} --region us-east-1
+    - name: build with kaniko.
+      run: |
+        kubectl run --rm kaniko-${{inputs.app_name}}-${SHORT_SHA} --namespace=github-runner --attach=true --image=gcr.io/kaniko-project/executor:latest \
+        --restart=Never -- \
+        --verbosity=${{inputs.kaniko_verbosity}} \
+        --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY} \
+        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${SHORT_SHA} \
+        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:latest --git=branch=${GITHUB_BRANCH}
