@@ -63,8 +63,9 @@ jobs:
                   ],
                   "volumes": [{
                     "name":"aws-secret",
-                    "secret":
+                    "secret": {
                       "secretName": "aws-secret"
+                    }
                   }]
                 }
               }
