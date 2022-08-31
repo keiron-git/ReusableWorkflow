@@ -47,31 +47,9 @@ jobs:
         aws eks update-kubeconfig --name ${{inputs.cluster_name}} --region us-east-1
     - name: build with kaniko.
       run: |
-        kubectl run --overrides='
-          {
-            "apiVersion": "v1",
-            "spec": {
-              "template": {
-                "spec": {
-                  "containers": [
-                    {
-                      "volumeMounts": [{
-                        "mountPath": "/root/.aws/",
-                        "name": "aws-secret"
-                      }]
-                    }
-                  ],
-                  "volumes": [{
-                    "name":"aws-secret",
-                    "secret": {
-                      "secretName": "aws-secret"
-                    }
-                  }]
-                }
-              }
-            }
-          }' \
-        --rm kaniko-${{inputs.app_name}}-${SHORT_SHA} --namespace=runner --attach=true --image=gcr.io/kaniko-project/executor:latest \
+        kubectl run --rm kaniko-${{inputs.app_name}}-${SHORT_SHA} \
+        --namespace=runner --attach=true \
+        --image=gcr.io/kaniko-project/executor:latest \
         --restart=Never -- \
         --verbosity=${{inputs.kaniko_verbosity}} \
         --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY} \
