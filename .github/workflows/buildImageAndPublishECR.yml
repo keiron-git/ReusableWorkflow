@@ -53,4 +53,27 @@ jobs:
         --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY} \
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${SHORT_SHA} \
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:latest --git=branch=${GITHUB_BRANCH} \
-        --context-sub-path=${{inputs.working-directory}}
+        --context-sub-path=${{inputs.working-directory}} \
+        --overrides='
+          {
+            "apiVersion": "batch/v1",
+            "spec": {
+              "template": {
+                "spec": {
+                  "containers": [
+                    {
+                      "volumeMounts": [{
+                        "mountPath": "/root/.aws/",
+                        "name": "aws-secret"
+                      }]
+                    }
+                  ],
+                  "volumes": [{
+                    "name":"aws-secret",
+                    "secret":
+                      "secretName": "aws-secret"
+                  }]
+                }
+              }
+            }
+          }' 
