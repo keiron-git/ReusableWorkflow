@@ -17,7 +17,7 @@ on:
         default: "5m"
       runner:
         type: string
-        default: "runner-development" 
+        default: "eks-dev" 
       environment:
         type: string
         default: "dev"
@@ -36,10 +36,6 @@ jobs:
   deployment-kaniko:
     runs-on: ${{inputs.runner}}
     environment: ${{inputs.environment}}
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{inputs.working-directory}}
     steps:
     - name: checkout
       uses: actions/checkout@v2
@@ -56,4 +52,5 @@ jobs:
         --verbosity=${{inputs.kaniko_verbosity}} \
         --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY} \
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${SHORT_SHA} \
-        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:latest --git=branch=${GITHUB_BRANCH}
+        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-west-2.amazonaws.com/${{inputs.image_repository_name}}:latest --git=branch=${GITHUB_BRANCH} \
+        --context-sub-path=${{inputs.working-directory}}
