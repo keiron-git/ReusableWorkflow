@@ -27,6 +27,9 @@ on:
       kaniko_verbosity:
         type: string
         default: "info"
+      working-directory:
+        type: string
+        default: "./"
     secrets:
       aws_account_id:
         required: true
