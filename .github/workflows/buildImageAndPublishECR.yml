@@ -27,6 +27,9 @@ on:
       working-directory:
         type: string
         default: "./"
+      dockerfile:
+        type: string
+        default: "Dockerfile"
     secrets:
       aws_account_id:
         required: true
@@ -56,4 +59,5 @@ jobs:
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${SHORT_SHA} \
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:latest --git=branch=${GITHUB_BRANCH} \
         --context-sub-path=${{inputs.working-directory}} \
+        --dockerfile=${{inputs.dockerfile}}
         
