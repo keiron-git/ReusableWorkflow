@@ -33,6 +33,9 @@ on:
       dockerfile:
         type: string
         default: "Dockerfile"
+      prefix:
+        type: string
+        default: ""
     secrets:
       aws_account_id:
         required: true
@@ -60,14 +63,14 @@ jobs:
         --restart=Never -- \
         --verbosity=${{inputs.kaniko_verbosity}} \
         --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY} \
-        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${SHORT_SHA} \
-        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:latest --git=branch=${GITHUB_BRANCH} \
+        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
+        --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} --git=branch=${GITHUB_BRANCH} \
         --context-sub-path=${{inputs.working-directory}} \
         --dockerfile=${{inputs.dockerfile}}
     - name: kubernetes deploy
       id: deploy
       run: |
-        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${SHORT_SHA} --record
+        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record
     
     - name: kubernetes deployment status
       run: |
