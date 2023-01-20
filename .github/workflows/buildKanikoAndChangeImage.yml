@@ -36,6 +36,9 @@ on:
       prefix:
         type: string
         default: ""
+      branch:
+        type: string
+        default: "main"
     secrets:
       aws_account_id:
         required: true
@@ -64,7 +67,7 @@ jobs:
         --image=gcr.io/kaniko-project/executor:latest \
         --restart=Never -- \
         --verbosity=${{inputs.kaniko_verbosity}} \
-        --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY} \
+        --context=git://${{secrets.personal_token}}@github.com//${GITHUB_REPOSITORY}#refs/heads/${{inputs.branch}} \
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} --git=branch=${GITHUB_BRANCH} \
         --context-sub-path=${{inputs.working-directory}} \
