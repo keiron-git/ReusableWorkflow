@@ -72,6 +72,7 @@ jobs:
         --destination=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} --git=branch=${GITHUB_BRANCH} \
         --context-sub-path=${{inputs.working-directory}} \
         --dockerfile=${{inputs.dockerfile}}
+        --cache=true
     - name: kubernetes deploy
       id: deploy
       run: |
