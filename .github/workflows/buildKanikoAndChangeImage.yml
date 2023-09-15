@@ -73,6 +73,8 @@ jobs:
         --context-sub-path=${{inputs.working-directory}} \
         --dockerfile=${{inputs.dockerfile}} \
         --single-snapshot \
+        --cache=true \ 
+        --cache-repo=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}} \
         --snapshotMode=redo
     - name: kubernetes deploy
       id: deploy
