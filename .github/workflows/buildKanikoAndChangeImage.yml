@@ -75,8 +75,8 @@ jobs:
         --single-snapshot \
         --snapshotMode=redo \
         --cache=true \ 
-        --cache-repo ${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}} \
-        --cache-ttl 2190h0m0s \
+        --cache-repo=${{secrets.aws_account_id}}.dkr.ecr.us-east-1.amazonaws.com/${{inputs.image_repository_name}} \
+        --cache-ttl=2190h0m0s \
     - name: kubernetes deploy
       id: deploy
       run: |
