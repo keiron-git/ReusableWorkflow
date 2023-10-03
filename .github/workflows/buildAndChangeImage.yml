@@ -73,10 +73,10 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        cd site
         docker image build \
         --tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest \
         --tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
+        -f ${{inputs.dockerfile}}
         .
         docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
         docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
