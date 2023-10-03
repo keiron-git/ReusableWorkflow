@@ -98,16 +98,15 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        kubectl config set-context --current --namespace=${{inputs.namespace}}
-        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record
+        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
     - name: kubernetes deployment status
       run: |
-        kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}}
+        kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
     
     - name: rollback
       if: steps.deploy.outcome != 'success'
       run: |
-        kubectl rollout undo deploy ${{inputs.app_name}}
+        kubectl rollout undo deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
     - name: kubernetes deployment check
       run: |
-        kubectl get deploy ${{inputs.app_name}}
+        kubectl get deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
