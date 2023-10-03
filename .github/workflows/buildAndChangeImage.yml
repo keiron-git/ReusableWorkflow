@@ -1,0 +1,116 @@
+name: Build and change image
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: true
+        type: string
+      app_name:
+        required: true
+        type: string
+      image_repository_name:
+        required: true
+        type: string
+      cluster_name:
+        required: true
+        type: string
+      timeout:
+        type: string
+        default: "5m"
+      runner:
+        type: string
+        default: "ubuntu" 
+      environment:
+        type: string
+        default: "dev"
+      kaniko_verbosity:
+        type: string
+        default: "info"
+      working-directory:
+        type: string
+        default: "./"
+      dockerfile:
+        type: string
+        default: "Dockerfile"
+      prefix:
+        type: string
+        default: ""
+      branch:
+        type: string
+        default: "main"
+    secrets:
+      aws_account_id:
+        required: true
+      personal_token:
+        required: true
+      aws_access_key_id:
+        required: true
+      aws_secret_access_key:
+        required: true
+
+jobs:
+  build:
+    runs-on: ${{inputs.runner}}
+    steps:
+    - name: Clone
+      uses: actions/checkout@v2
+    
+    - name: set job env
+      run: |
+        echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.aws_access_key_id }}
+        aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+        aws-region: us-east-1
+      
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        cd site
+        docker image build \
+        --tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest \
+        --tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
+        .
+        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
+
+    - name: Install and configure kubectl
+      run: |
+        VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+        # https://github.com/aws/aws-cli/issues/6920#issuecomment-1117981158
+        VERSION=v1.23.6
+        curl https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/amd64/kubectl \
+          --progress-bar \
+          --location \
+          --remote-name
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
+
+    - name: Deploy
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record
+    - name: kubernetes deployment status
+      run: |
+        kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}}
+    
+    - name: rollback
+      if: steps.deploy.outcome != 'success'
+      run: |
+        kubectl rollout undo deploy ${{inputs.app_name}}
+    - name: kubernetes deployment check
+      run: |
+        kubectl get deploy ${{inputs.app_name}}
