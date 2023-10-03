@@ -74,12 +74,12 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
         docker image build \
-        --tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest \
-        --tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
+        --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} \
+        --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
         -f ${{inputs.dockerfile}}
         .
-        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
+        docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}}
+        docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
 
     - name: Install and configure kubectl
       run: |
@@ -98,7 +98,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record
+        kubectl set image deploy/${{inputs.app_name}}  ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record
     - name: kubernetes deployment status
       run: |
         kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}}
