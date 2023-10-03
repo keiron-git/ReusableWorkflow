@@ -76,7 +76,7 @@ jobs:
         docker image build \
         --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} \
         --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
-        -f ${{inputs.dockerfile}}
+        -f ${{inputs.dockerfile}} \
         .
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}}
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
