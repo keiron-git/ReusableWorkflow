@@ -55,8 +55,8 @@ jobs:
     - name: set job env
       run: |
         echo "BRANCH=${GITHUB_REF#refs/*/}"
-        echo "TAG=${GITHUB_REF_NAME}"
-        echo "BRANCH=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        echo "TAG=${GITHUB_REF_NAME////_}"
+        echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
         echo "TAG=${BRANCH//[^a-zA-Z0-9]/''}" >> $GITHUB_ENV
         echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
 
