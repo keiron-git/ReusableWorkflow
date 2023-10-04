@@ -12,9 +12,6 @@ on:
       image_repository_name:
         required: true
         type: string
-      cluster_name:
-        required: true
-        type: string
       timeout:
         type: string
         default: "5m"
@@ -24,21 +21,12 @@ on:
       environment:
         type: string
         default: "dev"
-      kaniko_verbosity:
-        type: string
-        default: "info"
-      working-directory:
-        type: string
-        default: "./"
       dockerfile:
         type: string
         default: "Dockerfile"
       prefix:
         type: string
         default: ""
-      branch:
-        type: string
-        default: "main"
     secrets:
       aws_account_id:
         required: true
@@ -48,6 +36,7 @@ on:
 jobs:
   build:
     runs-on: ${{inputs.runner}}
+    environment: ${{inputs.environment}}
     steps:
     - name: Clone
       uses: actions/checkout@v2
