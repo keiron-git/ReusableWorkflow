@@ -16,8 +16,8 @@ on:
         type: string
         default: "5m"
       runner:
+        required: true
         type: string
-        default: "ubuntu" 
       environment:
         type: string
         default: "dev"
@@ -27,11 +27,6 @@ on:
       prefix:
         type: string
         default: ""
-    secrets:
-      aws_account_id:
-        required: true
-      personal_token:
-        required: true
 
 jobs:
   build:
