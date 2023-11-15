@@ -79,6 +79,7 @@ jobs:
         echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
 
     - name: Deploy
+      id: deploy
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
