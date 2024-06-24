@@ -79,6 +79,18 @@ jobs:
       run: |
         echo "TAG=${GITHUB_REF_NAME////_}" >> $GITHUB_ENV
         echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+      
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
     - name: Install and configure kubectl
       run: |
         VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
@@ -91,9 +103,6 @@ jobs:
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
         echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
     - name: Deploy
       id: deploy
       env:
