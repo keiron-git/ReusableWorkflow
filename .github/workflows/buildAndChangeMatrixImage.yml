@@ -68,6 +68,7 @@ jobs:
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
         
   deploy:
+    needs: build
     runs-on: ${{inputs.runner}}
     environment: ${{inputs.environment}}
     strategy:
