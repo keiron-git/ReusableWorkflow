@@ -79,7 +79,7 @@ jobs:
       run: |
         echo "TAG=${GITHUB_REF_NAME////_}" >> $GITHUB_ENV
         echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
-
+        echo "APP_DEPLOY=`echo ${{inputs.app_name}}-${{ matrix.labels }}" >> $GITHUB_ENV
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -108,15 +108,15 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        kubectl set image deploy/${{inputs.app_name}}-${{ matrix.labels }} ${{inputs.app_name}}-${{ matrix.labels }}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
+        kubectl set image deploy/${APP_DEPLOY} ${APP_DEPLOY}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
     - name: kubernetes deployment status
       run: |
-        kubectl rollout status deployment ${{inputs.app_name}}-${{ matrix.labels }} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
+        kubectl rollout status deployment ${APP_DEPLOY} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
     
     - name: rollback
       if: steps.deploy.outcome != 'success'
       run: |
-        kubectl rollout undo deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
+        kubectl rollout undo deploy ${APP_DEPLOY} --namespace=${{inputs.namespace}}
     - name: kubernetes deployment check
       run: |
-        kubectl get deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
+        kubectl get deploy ${APP_DEPLOY} --namespace=${{inputs.namespace}}
