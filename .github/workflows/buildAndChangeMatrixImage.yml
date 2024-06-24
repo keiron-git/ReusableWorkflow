@@ -75,6 +75,10 @@ jobs:
       matrix:
         labels: ${{fromJson(inputs.matcherLabel)}}
     steps:
+    - name: set job env
+      run: |
+        echo "TAG=${GITHUB_REF_NAME////_}" >> $GITHUB_ENV
+        echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
     - name: Install and configure kubectl
       run: |
         VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
@@ -87,11 +91,13 @@ jobs:
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
         echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
-
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
     - name: Deploy
       id: deploy
       env:
-        ECR_REGISTRY: ${{ build.steps.login-ecr.outputs.registry }}
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
         kubectl set image deploy/${{inputs.app_name}}-${{ matrix.labels }} ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
     - name: kubernetes deployment status
