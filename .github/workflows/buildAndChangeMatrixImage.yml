@@ -108,7 +108,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        kubectl set image deploy/${{inputs.app_name}}-${{ matrix.labels }} ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
+        kubectl set image deploy/${{inputs.app_name}}-${{ matrix.labels }} ${{inputs.app_name}}-${{ matrix.labels }}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
     - name: kubernetes deployment status
       run: |
         kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
