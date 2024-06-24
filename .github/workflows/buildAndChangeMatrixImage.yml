@@ -1,0 +1,106 @@
+name: Build and change image
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: true
+        type: string
+      app_name:
+        required: true
+        type: string
+      image_repository_name:
+        required: true
+        type: string
+      timeout:
+        type: string
+        default: "5m"
+      runner:
+        required: true
+        type: string
+      environment:
+        type: string
+        default: "dev"
+      dockerfile:
+        type: string
+        default: "Dockerfile"
+      prefix:
+        type: string
+        default: ""
+      matcherLabel:
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{inputs.runner}}
+    environment: ${{inputs.environment}}
+    steps:
+    - name: Clone
+      uses: actions/checkout@v3
+    
+    - name: set job env
+      run: |
+        echo "TAG=${GITHUB_REF_NAME////_}" >> $GITHUB_ENV
+        echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+      
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker image build \
+        --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} \
+        --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
+        -f ${{inputs.dockerfile}} \
+        .
+        docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}}
+        docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
+        
+  deploy:
+    runs-on: ${{inputs.runner}}
+    environment: ${{inputs.environment}}
+    strategy:
+      matrix:
+        labels: ${{fromJson(inputs.matcherLabel)}}
+    steps:
+    - name: Install and configure kubectl
+      run: |
+        VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+        # https://github.com/aws/aws-cli/issues/6920#issuecomment-1117981158
+        VERSION=v1.23.6
+        curl https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/arm64/kubectl \
+          --progress-bar \
+          --location \
+          --remote-name
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
+
+    - name: Deploy
+      id: deploy
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        kubectl set image deploy/${{inputs.app_name}}-${{ matrix.labels }} ${{inputs.app_name}}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
+    - name: kubernetes deployment status
+      run: |
+        kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
+    
+    - name: rollback
+      if: steps.deploy.outcome != 'success'
+      run: |
+        kubectl rollout undo deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
+    - name: kubernetes deployment check
+      run: |
+        kubectl get deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
