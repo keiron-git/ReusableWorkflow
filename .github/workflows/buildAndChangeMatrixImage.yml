@@ -79,7 +79,7 @@ jobs:
       run: |
         echo "TAG=${GITHUB_REF_NAME////_}" >> $GITHUB_ENV
         echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c 1-8`" >> $GITHUB_ENV
-        echo "APP_DEPLOY=`echo ${{inputs.app_name}}-${{ matrix.labels }}" >> $GITHUB_ENV
+        echo "APP_DEPLOY=`echo ${{inputs.app_name}}-${{ matrix.labels }}`" >> $GITHUB_ENV
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
