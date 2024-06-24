@@ -111,7 +111,7 @@ jobs:
         kubectl set image deploy/${{inputs.app_name}}-${{ matrix.labels }} ${{inputs.app_name}}-${{ matrix.labels }}=${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} --record --namespace=${{inputs.namespace}}
     - name: kubernetes deployment status
       run: |
-        kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
+        kubectl rollout status deployment ${{inputs.app_name}}-${{ matrix.labels }} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
     
     - name: rollback
       if: steps.deploy.outcome != 'success'
