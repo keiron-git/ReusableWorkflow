@@ -18,7 +18,7 @@ on:
       environment:
         type: string
         default: "dev"
-      image_url:
+      image_uri:
         required: true
         type: string
 
@@ -44,7 +44,8 @@ jobs:
     - name: Deploy
       id: deploy
       run: |
-        kubectl set image deploy/${{inputs.app_name}} ${{inputs.app_name}}=${{inputs.image_url}} --record --namespace=${{inputs.namespace}}
+        echo ${{inputs.image_uri}}
+        kubectl set image deploy/${{inputs.app_name}} ${{inputs.app_name}}=${{inputs.image_uri}} --record --namespace=${{inputs.namespace}}
     
     - name: Kubernetes deployment status
       run: |
