@@ -29,33 +29,22 @@ on:
         default: ""
 
 jobs:
+  build-and-publish:
+    uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/buildImageAndPublishECR.yml@logs-and-separated-build-steps
+    with:
+      image_repository_name: ${{inputs.image_repository_name}}
+      environment: ${{inputs.environment}}
+      runner: ${{inputs.runner}}
+      dockerfile: ${{inputs.dockerfile}}
+      prefix: ${{inputs.prefix}}
+
   deploy:
-    runs-on: ${{inputs.runner}}
-    environment: ${{inputs.environment}}
-    steps:
-
-    # Debe hacer checkout de sí mismo para poder usar los workflows locales
-    - name: Checkout reusable workflows repository
-      uses: actions/checkout@v4
-      with:
-        ref: logs-and-separated-build-steps  # Luego sacar, esto es de prueba, debería ser master por default
-
-    - name: Build and publish ECR
-      id: build-and-publish-ecr
-      uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/buildImageAndPublishECR.yml@logs-and-separated-build-steps
-      with:
-        image_repository_name: ${{inputs.image_repository_name}}
-        environment: ${{inputs.environment}}
-        runner: ${{inputs.runner}}
-        dockerfile: ${{inputs.dockerfile}}
-        prefix: ${{inputs.prefix}}
-
-    - name: Deploy to Kubernetes
-      uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/deployImageToKubernetes.yaml@logs-and-separated-build-steps
-      with:
-        namespace: ${{inputs.namespace}}
-        app_name:  ${{inputs.app_name}}
-        runner: ${{inputs.runner}}
-        environment: ${{inputs.environment}}
-        image_url: ${{ steps.build-and-publish-ecr.outputs.image_uri }}
-        timeout: ${{inputs.timeout}}
+    uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/deployImageToKubernetes.yaml@logs-and-separated-build-steps
+    needs: build-and-publish
+    with:
+      namespace: ${{inputs.namespace}}
+      app_name:  ${{inputs.app_name}}
+      runner: ${{inputs.runner}}
+      environment: ${{inputs.environment}}
+      image_uri: ${{ needs.build-and-publish.outputs.image_uri }}
+      timeout: ${{inputs.timeout}}
