@@ -34,9 +34,13 @@ jobs:
     environment: ${{inputs.environment}}
     steps:
 
+    # Debe hacer checkout de sí mismo para poder usar los workflows locales
+    - name: Checkout reusable workflows repository
+      uses: actions/checkout@v4
+
     - name: Build and publish ECR
       id: build-and-publish-ecr
-      uses: ./buildImageAndPublishECR.yml
+      uses: ./.github/workflows/buildImageAndPublishECR.yml
       with:
         image_repository_name: ${{inputs.image_repository_name}}
         environment: ${{inputs.environment}}
@@ -45,7 +49,7 @@ jobs:
         prefix: ${{inputs.prefix}}
 
     - name: Deploy to Kubernetes
-      uses: ./deployImageToKubernetes.yaml
+      uses: ./.github/workflows/deployImageToKubernetes.yaml
       with:
         namespace: ${{inputs.namespace}}
         app_name:  ${{inputs.app_name}}
