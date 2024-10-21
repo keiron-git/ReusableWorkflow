@@ -37,6 +37,8 @@ jobs:
     # Debe hacer checkout de sí mismo para poder usar los workflows locales
     - name: Checkout reusable workflows repository
       uses: actions/checkout@v4
+      with:
+        ref: logs-and-separated-build-steps  # Luego sacar, esto es de prueba, debería ser master por default
 
     - name: Build and publish ECR
       id: build-and-publish-ecr
