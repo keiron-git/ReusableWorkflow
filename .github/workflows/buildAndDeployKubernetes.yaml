@@ -42,7 +42,7 @@ jobs:
 
     - name: Build and publish ECR
       id: build-and-publish-ecr
-      uses: ./.github/workflows/buildImageAndPublishECR.yml
+      uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/buildImageAndPublishECR.yml@logs-and-separated-build-steps
       with:
         image_repository_name: ${{inputs.image_repository_name}}
         environment: ${{inputs.environment}}
@@ -51,7 +51,7 @@ jobs:
         prefix: ${{inputs.prefix}}
 
     - name: Deploy to Kubernetes
-      uses: ./.github/workflows/deployImageToKubernetes.yaml
+      uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/deployImageToKubernetes.yaml@logs-and-separated-build-steps
       with:
         namespace: ${{inputs.namespace}}
         app_name:  ${{inputs.app_name}}
