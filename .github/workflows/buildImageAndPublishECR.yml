@@ -48,13 +48,13 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        echo "DEBUG: Starting docker image build at $(date)"
+        echo ">>>>> DEBUG: Starting docker image build at $(date)"
         docker image build \
           --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${TAG}-${{inputs.prefix}} \
           --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
           -f ${{inputs.dockerfile}} \
           .
-        echo "DEBUG: Finished docker image build at $(date)"
-        echo "DEBUG: Starting docker push at $(date)"
+        echo ">>>>> DEBUG: Finished docker image build at $(date)"
+        echo ">>>>> DEBUG: Starting docker push at $(date)"
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}} --all-tags
-        echo "DEBUG: Finished docker push at $(date)"
+        echo ">>>>> DEBUG: Finished docker push at $(date)"
