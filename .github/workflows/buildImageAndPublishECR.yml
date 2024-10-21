@@ -23,6 +23,8 @@ jobs:
   build:
     runs-on: ${{inputs.runner}}
     environment: ${{inputs.environment}}
+    outputs:
+      image_uri: ${{ steps.build-image.outputs.image_uri }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
     steps:
     - name: Clone
       uses: actions/checkout@v4
