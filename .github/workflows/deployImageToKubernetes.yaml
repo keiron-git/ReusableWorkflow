@@ -46,15 +46,15 @@ jobs:
       run: |
         kubectl set image deploy/${{inputs.app_name}} ${{inputs.app_name}}=${{inputs.image_url}} --record --namespace=${{inputs.namespace}}"
     
-    - name: kubernetes deployment status
+    - name: Kubernetes deployment status
       run: |
         kubectl rollout status deployment ${{inputs.app_name}} --timeout=${{inputs.timeout}} --namespace=${{inputs.namespace}}
     
-    - name: rollback
+    - name: Rollback
       if: steps.deploy.outcome != 'success'
       run: |
         kubectl rollout undo deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
     
-    - name: kubernetes deployment check
+    - name: Kubernetes deployment check
       run: |
         kubectl get deploy ${{inputs.app_name}} --namespace=${{inputs.namespace}}
