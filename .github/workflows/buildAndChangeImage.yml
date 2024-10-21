@@ -57,13 +57,18 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
+        echo ">>>>> DEBUG: Starting docker image build at $(date)"
         docker image build \
         --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}} \
         --tag ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA} \
         -f ${{inputs.dockerfile}} \
         .
+        echo ">>>>> DEBUG: Finished docker image build at $(date)"
+        echo ">>>>> DEBUG: Starting docker push at $(date)"
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:latest-${{inputs.prefix}}
+        echo ">>>>> DEBUG: Finished docker push latest at $(date)"
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
+        echo ">>>>> DEBUG: Finished docker push tag at $(date)"
 
     - name: Install and configure kubectl
       run: |
