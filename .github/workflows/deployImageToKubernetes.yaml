@@ -44,7 +44,7 @@ jobs:
     - name: Deploy
       id: deploy
       run: |
-        kubectl set image deploy/${{inputs.app_name}} ${{inputs.app_name}}=${{inputs.image_url}} --record --namespace=${{inputs.namespace}}"
+        kubectl set image deploy/${{inputs.app_name}} ${{inputs.app_name}}=${{inputs.image_url}} --record --namespace=${{inputs.namespace}}
     
     - name: Kubernetes deployment status
       run: |
