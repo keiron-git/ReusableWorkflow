@@ -30,7 +30,7 @@ on:
 
 jobs:
   build-and-publish:
-    uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/buildImageAndPublishECR.yml@logs-and-separated-build-steps
+    uses: ./.github/workflows/buildImageAndPublishECR.yml
     with:
       image_repository_name: ${{inputs.image_repository_name}}
       environment: ${{inputs.environment}}
@@ -39,7 +39,7 @@ jobs:
       prefix: ${{inputs.prefix}}
 
   deploy:
-    uses: Keiron-HealthTech/ReusableWorkflow/.github/workflows/deployImageToKubernetes.yaml@logs-and-separated-build-steps
+    uses: ./.github/workflows/deployImageToKubernetes.yaml
     needs: build-and-publish
     with:
       namespace: ${{inputs.namespace}}
