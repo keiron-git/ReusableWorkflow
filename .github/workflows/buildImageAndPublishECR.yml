@@ -28,8 +28,7 @@ jobs:
     runs-on: ${{inputs.runner}}
     environment: ${{inputs.environment}}
     outputs:
-      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
-      hola: "chao"
+      image_uri: ${{ steps.set-outputs.outputs.image_uri }}
     steps:
     - name: Clone
       uses: actions/checkout@v4
@@ -66,6 +65,7 @@ jobs:
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}} --all-tags
         echo ">>>>> DEBUG: Finished docker push at $(date)"
     
-    - name: Debug Outputs
-      run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}"
+    - name: Set Outputs
+      id: set-outputs
+      run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}" >> $GITHUB_OUTPUT
       
