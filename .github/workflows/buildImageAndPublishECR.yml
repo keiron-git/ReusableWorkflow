@@ -18,6 +18,10 @@ on:
       prefix:
         type: string
         default: ""
+    outputs:
+      image_uri:
+        description: "The URI of the Docker image that was built and pushed to Amazon ECR"
+        value: ${{ jobs.build.outputs.image_uri }}
 
 jobs:
   build:
