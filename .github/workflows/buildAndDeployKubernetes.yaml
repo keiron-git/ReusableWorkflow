@@ -30,7 +30,7 @@ on:
 
 jobs:
   build-and-publish:
-    uses: ./.github/workflows/buildImageAndPublishECR.yml
+    uses: ./.github/workflows/buildImageAndPublishECR.yaml
     with:
       image_repository_name: ${{inputs.image_repository_name}}
       environment: ${{inputs.environment}}
