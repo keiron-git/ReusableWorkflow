@@ -24,7 +24,7 @@ jobs:
     runs-on: ${{inputs.runner}}
     environment: ${{inputs.environment}}
     outputs:
-      image_uri: ${{ steps.build-image.outputs.image_uri }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
+      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}
       hola: "chao"
     steps:
     - name: Clone
@@ -61,3 +61,7 @@ jobs:
         echo ">>>>> DEBUG: Starting docker push at $(date)"
         docker push ${{ env.ECR_REGISTRY }}/${{inputs.image_repository_name}} --all-tags
         echo ">>>>> DEBUG: Finished docker push at $(date)"
+    
+    - name: Debug Outputs
+      run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{inputs.image_repository_name}}:${TAG}-${{inputs.prefix}}-${SHORT_SHA}"
+      
