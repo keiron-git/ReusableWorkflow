@@ -12,6 +12,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT_RELEASE_PLEASE }}
 
 jobs:
   pr_to_main_handler:
@@ -20,7 +21,7 @@ jobs:
       - name: Checkout development code
         uses: actions/checkout@v4
         with:
-          ref: 'development'
+          ref: "development"
           fetch-depth: 0
 
       - name: Get the last commit SHA
@@ -84,9 +85,15 @@ jobs:
 
       - name: Create pull request
         if: steps.parent_pr_number.outcome == 'failure'
-        run: |
-          if [ "${{ steps.cherry_pick.outcome }}" == "failure" ]; then
-            gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body ':warning: This PR had conflicts with main. Make sure the changes are correct before proceeding. <br> This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in development.' --assignee ${{ inputs.development_pr_creator }} --draft
-          else
-            gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body 'This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in development.' --assignee ${{ inputs.development_pr_creator }} --draft
-          fi
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          base: main
+          branch: dev-${{ steps.last_commit.outputs.sha }}
+          title: "🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}"
+          body: |
+            ${{ steps.cherry_pick.outcome == 'failure' && ':warning: This PR had conflicts with main. Make sure the changes are correct before proceeding.' || '' }}
+
+            This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in development.
+          assignees: ${{ inputs.development_pr_creator }}
+          draft: true
