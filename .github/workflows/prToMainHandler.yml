@@ -90,7 +90,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.personal_access_token }}
-          base: main
+          base: ${{ github.head_ref }}
           branch: dev-${{ steps.last_commit.outputs.sha }}
           title: "🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}"
           body: |
