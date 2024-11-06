@@ -9,9 +9,9 @@ on:
       development_pr_creator:
         required: true
         type: string
+    secrets:
       personal_access_token:
         required: true
-        type: string
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -77,19 +77,16 @@ jobs:
           git commit --no-edit
 
       - name: Push branch
+        if: steps.parent_pr_number.outcome != 'failure'
         run: |
-          if [ "${{ steps.parent_pr_number.outcome }}" == "failure" ]; then
-            git push origin dev-${{ steps.last_commit.outputs.sha }}
-          else
-            parent_branch=$(gh pr view ${{ steps.parent_pr_number.outputs.parent_pr }} --json headRefName --jq '.headRefName')
-            git push origin HEAD:$parent_branch
-          fi
+          parent_branch=$(gh pr view ${{ steps.parent_pr_number.outputs.parent_pr }} --json headRefName --jq '.headRefName')
+          git push origin HEAD:$parent_branch
 
       - name: Create pull request
         if: steps.parent_pr_number.outcome == 'failure'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ inputs.personal_access_token }}
+          token: ${{ secrets.personal_access_token }}
           base: main
           branch: dev-${{ steps.last_commit.outputs.sha }}
           title: "🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}"
