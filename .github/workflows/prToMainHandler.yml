@@ -14,7 +14,7 @@ on:
         required: true
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.personal_access_token }}
 
 jobs:
   pr_to_main_handler:
@@ -77,10 +77,13 @@ jobs:
           git commit --no-edit
 
       - name: Push branch
-        if: steps.parent_pr_number.outcome != 'failure'
         run: |
-          parent_branch=$(gh pr view ${{ steps.parent_pr_number.outputs.parent_pr }} --json headRefName --jq '.headRefName')
-          git push origin HEAD:$parent_branch
+          if [ "${{ steps.parent_pr_number.outcome }}" == "failure" ]; then
+            git push origin dev-${{ steps.last_commit.outputs.sha }}
+          else
+            parent_branch=$(gh pr view ${{ steps.parent_pr_number.outputs.parent_pr }} --json headRefName --jq '.headRefName')
+            git push origin HEAD:$parent_branch
+          fi
 
       - name: Create pull request
         if: steps.parent_pr_number.outcome == 'failure'
@@ -90,5 +93,3 @@ jobs:
           else
             gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body 'This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in development.' --assignee ${{ inputs.development_pr_creator }} --draft
           fi
-        env:
-          GH_TOKEN: ${{ secrets.personal_access_token }}
