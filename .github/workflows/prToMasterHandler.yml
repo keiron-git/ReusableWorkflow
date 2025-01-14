@@ -96,8 +96,10 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          git fetch origin master
-          CHANGES=$(git rev-list --count master..HEAD)
+          git fetch origin master:master
+          git rev-parse --verify HEAD
+          git rev-parse --verify master
+          CHANGES=$(git rev-list --count master..HEAD || echo "0")
           echo "has_changes=$CHANGES" >> $GITHUB_OUTPUT
 
       - name: Create pull request
