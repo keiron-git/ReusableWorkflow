@@ -77,8 +77,12 @@ jobs:
       - name: Commit conflicts if cherry pick fails
         if: ${{ steps.cherry_pick.outcome == 'failure' }}
         run: |
-          git add .
-          git commit --no-edit
+          if git status --porcelain | grep '^[MADRCU]'; then
+            git add .
+            git commit --no-edit
+          else
+            echo "No changes to commit after resolving conflicts"
+          fi
 
       - name: Push branch
         run: |
