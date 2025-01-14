@@ -9,6 +9,10 @@ on:
       development_pr_creator:
         required: true
         type: string
+      reference_branch:
+        required: false
+        type: string
+        default: "development"
     secrets:
       personal_access_token:
         required: true
@@ -20,10 +24,10 @@ jobs:
   pr_to_main_handler:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout development code
+      - name: Checkout ${{ inputs.reference_branch }} code
         uses: actions/checkout@v4
         with:
-          ref: "development"
+          ref: ${{ inputs.reference_branch }}
           fetch-depth: 0
 
       - name: Get the last commit SHA
@@ -64,7 +68,7 @@ jobs:
           git fetch origin $parent_branch
           git checkout $parent_branch
 
-      - name: Cherry-pick the last commit from development
+      - name: Cherry-pick the last commit from ${{ inputs.reference_branch }}
         id: cherry_pick
         run: |
           git cherry-pick -m 1 ${{ steps.last_commit.outputs.sha }}
@@ -89,7 +93,7 @@ jobs:
         if: steps.parent_pr_number.outcome == 'failure'
         run: |
           if [ "${{ steps.cherry_pick.outcome }}" == "failure" ]; then
-            gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body ':warning: This PR had conflicts with main. Make sure the changes are correct before proceeding. <br> This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in development.' --assignee ${{ inputs.development_pr_creator }} --draft
+            gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body ':warning: This PR had conflicts with main. Make sure the changes are correct before proceeding. <br> This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in ${{ inputs.reference_branch }}.' --assignee ${{ inputs.development_pr_creator }} --draft
           else
-            gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body 'This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in development.' --assignee ${{ inputs.development_pr_creator }} --draft
+            gh pr create -B main -H dev-${{ steps.last_commit.outputs.sha }} --title '🔀 [Prod] ${{ steps.pr_details.outputs.title }} - #${{ inputs.development_pr_number }} by @${{ inputs.development_pr_creator }}' --body 'This PR includes changes from the last commit ${{ steps.last_commit.outputs.sha }}, PR \#${{ inputs.development_pr_number }} in ${{ inputs.reference_branch }}.' --assignee ${{ inputs.development_pr_creator }} --draft
           fi
